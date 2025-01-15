@@ -1,110 +1,174 @@
-package BankingSystem;
+import java.util.Scanner;
 
-// Parent class Account
-class Account {
-    protected String holderName;
-    protected String accountID;
-    protected double currentBalance;
+// Base Class
+class BankAccount {
+    private String accountHolderName;
+    private String accountNumber;
+    protected double balance;
 
     // Constructor
-    public Account(String holderName, String accountID, double initialBalance) {
-        this.holderName = holderName;
-        this.accountID = accountID;
-        this.currentBalance = initialBalance;
+    public BankAccount(String accountHolderName, String accountNumber, double initialBalance) {
+        this.accountHolderName = accountHolderName;
+        this.accountNumber = accountNumber;
+        this.balance = initialBalance;
     }
 
-    // Method to add funds
-    public void addFunds(double amount) {
+    // Deposit money
+    public void deposit(double amount) {
         if (amount > 0) {
-            currentBalance += amount;
-            System.out.println("Amount added successfully: $" + amount);
+            balance += amount;
+            System.out.println("Deposited: " + amount);
         } else {
-            System.out.println("Invalid amount. Please enter an amount greater than zero.");
+            System.out.println("Invalid deposit amount!");
         }
     }
 
-    // Method to deduct funds
-    public void deductFunds(double amount) {
-        if (amount > 0 && amount <= currentBalance) {
-            currentBalance -= amount;
-            System.out.println("Amount withdrawn: $" + amount);
+    // Withdraw money
+    public void withdraw(double amount) {
+        if (amount > 0 && amount <= balance) {
+            balance -= amount;
+            System.out.println("Withdrawn: " + amount);
         } else {
-            System.out.println("Withdrawal failed. Either insufficient balance or invalid amount.");
+            System.out.println("Invalid or insufficient balance for withdrawal!");
         }
     }
 
-    // Method to display balance
-    public void displayBalance() {
-        System.out.println("Available balance: $" + currentBalance);
+    // Check balance
+    public void checkBalance() {
+        System.out.println("Current Balance: " + balance);
     }
 
-    // Getter for account ID
-    public String fetchAccountID() {
-        return accountID;
+    // Display account details
+    public void displayDetails() {
+        System.out.println("Account Holder Name: " + accountHolderName);
+        System.out.println("Account Number: " + accountNumber);
+        System.out.println("Balance: " + balance);
     }
 }
 
-// Derived class PersonalAccount
-class PersonalAccount extends Account {
-    private static final double MINIMUM_BALANCE = 500.0; // Required minimum balance
+// Subclass: SavingsAccount
+class SavingsAccount extends BankAccount {
+    private double minimumBalance;
 
-    // Constructor
-    public PersonalAccount(String holderName, String accountID, double initialBalance) {
-        super(holderName, accountID, initialBalance);
+    public SavingsAccount(String accountHolderName, String accountNumber, double initialBalance, double minimumBalance) {
+        super(accountHolderName, accountNumber, initialBalance);
+        this.minimumBalance = minimumBalance;
     }
 
-    // Override deductFunds to ensure minimum balance
     @Override
-    public void deductFunds(double amount) {
-        if (currentBalance - amount >= MINIMUM_BALANCE) {
-            super.deductFunds(amount);
+    public void withdraw(double amount) {
+        if (balance - amount >= minimumBalance) {
+            super.withdraw(amount);
         } else {
-            System.out.println("Withdrawal denied. Maintain a minimum balance of $" + MINIMUM_BALANCE);
+            System.out.println("Cannot withdraw! Minimum balance requirement of " + minimumBalance + " must be maintained.");
         }
     }
-}
 
-// Derived class BusinessAccount
-class BusinessAccount extends Account {
-    private static final double MAX_OVERDRAFT = 1000.0; // Allowed overdraft limit
-
-    // Constructor
-    public BusinessAccount(String holderName, String accountID, double initialBalance) {
-        super(holderName, accountID, initialBalance);
-    }
-
-    // Override deductFunds to allow overdraft within limit
     @Override
-    public void deductFunds(double amount) {
-        if (amount > 0 && (currentBalance - amount) >= -MAX_OVERDRAFT) {
-            super.deductFunds(amount);
-        } else {
-            System.out.println("Transaction failed. Exceeds overdraft limit or invalid amount.");
-        }
+    public void displayDetails() {
+        super.displayDetails();
+        System.out.println("Minimum Balance: " + minimumBalance);
     }
 }
 
-// Main class to execute the program
-public class BankingApp {
+// Subclass: CurrentAccount
+class CurrentAccount extends BankAccount {
+    private double overdraftLimit;
+
+    public CurrentAccount(String accountHolderName, String accountNumber, double initialBalance, double overdraftLimit) {
+        super(accountHolderName, accountNumber, initialBalance);
+        this.overdraftLimit = overdraftLimit;
+    }
+
+    @Override
+    public void withdraw(double amount) {
+        if (balance - amount >= -overdraftLimit) {
+            super.withdraw(amount);
+        } else {
+            System.out.println("Cannot withdraw! Overdraft limit of " + overdraftLimit + " exceeded.");
+        }
+    }
+
+    @Override
+    public void displayDetails() {
+        super.displayDetails();
+        System.out.println("Overdraft Limit: " + overdraftLimit);
+    }
+}
+
+// Main Class
+public class BankingSystem {
     public static void main(String[] args) {
-        // Create PersonalAccount and BusinessAccount instances
-        PersonalAccount personalAcc = new PersonalAccount("Alice Brown", "P123456", 1000);
-        BusinessAccount businessAcc = new BusinessAccount("Bob Green", "B987654", 2000);
+        Scanner scanner = new Scanner(System.in);
 
-        // Perform operations on PersonalAccount
-        System.out.println("Transactions for PersonalAccount:");
-        personalAcc.addFunds(300); // Adding funds
-        personalAcc.displayBalance(); // Display balance
-        personalAcc.deductFunds(400); // Withdrawing funds
-        personalAcc.displayBalance(); // Display balance after withdrawal
-        personalAcc.deductFunds(1200); // Attempt withdrawal below minimum balance
+        // Create account
+        System.out.println("Welcome to the Banking System");
+        System.out.print("Enter account type (1 for Savings, 2 for Current): ");
+        int accountType = scanner.nextInt();
+        scanner.nextLine(); // Consume newline
 
-        // Perform operations on BusinessAccount
-        System.out.println("\nTransactions for BusinessAccount:");
-        businessAcc.addFunds(800); // Adding funds
-        businessAcc.displayBalance(); // Display balance
-        businessAcc.deductFunds(2500); // Overdraft within limit
-        businessAcc.displayBalance(); // Display balance after withdrawal
-        businessAcc.deductFunds(5000); // Exceeding overdraft limit
+        System.out.print("Enter Account Holder Name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter Account Number: ");
+        String accountNumber = scanner.nextLine();
+        System.out.print("Enter Initial Balance: ");
+        double initialBalance = scanner.nextDouble();
+
+        BankAccount account = null;
+
+        if (accountType == 1) {
+            System.out.print("Enter Minimum Balance for Savings Account: ");
+            double minBalance = scanner.nextDouble();
+            account = new SavingsAccount(name, accountNumber, initialBalance, minBalance);
+        } else if (accountType == 2) {
+            System.out.print("Enter Overdraft Limit for Current Account: ");
+            double overdraftLimit = scanner.nextDouble();
+            account = new CurrentAccount(name, accountNumber, initialBalance, overdraftLimit);
+        } else {
+            System.out.println("Invalid account type. Exiting...");
+            System.exit(0);
+        }
+
+        // Menu for operations
+        while (true) {
+            System.out.println("\nBanking Operations:");
+            System.out.println("1. Deposit Money");
+            System.out.println("2. Withdraw Money");
+            System.out.println("3. Check Balance");
+            System.out.println("4. Display Account Details");
+            System.out.println("5. Exit");
+            System.out.print("Choose an option: ");
+            int choice = scanner.nextInt();
+
+            switch (choice) {
+                case 1:
+                    System.out.print("Enter amount to deposit: ");
+                    double depositAmount = scanner.nextDouble();
+                    account.deposit(depositAmount);
+                    break;
+
+                case 2:
+                    System.out.print("Enter amount to withdraw: ");
+                    double withdrawAmount = scanner.nextDouble();
+                    account.withdraw(withdrawAmount);
+                    break;
+
+                case 3:
+                    account.checkBalance();
+                    break;
+
+                case 4:
+                    account.displayDetails();
+                    break;
+
+                case 5:
+                    System.out.println("Thank you for using the Banking System. Goodbye!");
+                    scanner.close();
+                    System.exit(0);
+
+                default:
+                    System.out.println("Invalid option! Please try again.");
+            }
+        }
     }
 }
